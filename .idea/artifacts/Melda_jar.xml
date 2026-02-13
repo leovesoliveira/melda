@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Melda:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Melda_jar</output-path>
+    <root id="archive" name="Melda.jar">
+      <element id="module-output" name="Melda" />
+    </root>
+  </artifact>
+</component>
