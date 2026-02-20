@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,8 +34,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
   public static List<Arrow> arrows;
   public static Random rand;
   public static String state = "MENU";
+  public static Font fontMd;
+  public static Font fontSm;
   public UI ui;
   public Menu menu;
+  public boolean savingGame = false;
+  public InputStream stream =
+      ClassLoader.getSystemClassLoader().getResourceAsStream("Jersey10.ttf");
   private boolean isRunning = true;
   private Thread thread;
   private BufferedImage image;
@@ -59,6 +66,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
     entities.add(player);
 
     world = new World("/level1.png");
+
+    try {
+      fontMd = Font.createFont(Font.TRUETYPE_FONT, stream);
+    } catch (FontFormatException | IOException e) {
+      throw new RuntimeException(e);
+    }
+
     menu = new Menu();
   }
 
@@ -90,6 +104,14 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
   public void tick() {
     if (Objects.equals(state, "DEFAULT")) {
+      if (this.savingGame) {
+        this.savingGame = false;
+        String[] opt1 = {"level"};
+        int[] opt2 = {this.currentLevel};
+        Menu.saveGame(opt1, opt2, 10);
+        System.out.println("Jogo salvo!");
+      }
+
       restartOnEnter = false;
       for (int i = 0; i < entities.size(); i++) {
         Entity e = entities.get(i);
@@ -267,6 +289,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
       if (Objects.equals(state, "DEFAULT")) {
         state = "MENU";
         menu.isPaused = true;
+      }
+    }
+
+    if (e.getKeyCode() == KeyEvent.VK_F1) {
+      if (Objects.equals(state, "DEFAULT")) {
+        this.savingGame = true;
       }
     }
   }

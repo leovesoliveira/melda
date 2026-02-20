@@ -34,18 +34,18 @@ public class UI {
     }
 
     g.setColor(Color.white);
-    g.setFont(new Font("arial", Font.BOLD, 18));
-    g.drawString(playerLife + " / " + (int) Game.player.maxLife, 26, 38);
+    g.setFont(Game.fontMd.deriveFont(Font.PLAIN, 31));
+    g.drawString(playerLife + " / " + (int) Game.player.maxLife, 26, 40);
 
     if (Game.player.ammo > 0) {
       if (Game.player.hasWeapon) g.setColor(Color.black);
       if (!Game.player.hasWeapon) g.setColor(Color.gray);
 
-      g.fillRect(lifeBarX, lifeBarY + lifeBarHeight, 100, lifeBarHeight);
+      g.fillRect(lifeBarX, lifeBarY + lifeBarHeight, 101, lifeBarHeight);
 
       g.setColor(Color.white);
-      g.setFont(new Font("arial", Font.BOLD, 14));
-      g.drawString("FLECHAS: " + Game.player.ammo, 26, 63);
+      g.setFont(Game.fontMd.deriveFont(Font.PLAIN, 24));
+      g.drawString("FLECHAS: " + Game.player.ammo, 26, 64);
     }
   }
 }

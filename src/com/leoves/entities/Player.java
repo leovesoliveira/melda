@@ -42,7 +42,7 @@ public class Player extends Entity {
     playerDamaged[0] = Game.spritesheet.getSprite(0, 16, 16, 16);
     playerDamaged[1] = Game.spritesheet.getSprite(16, 16, 16, 16);
 
-    setMask(4, 0, 9, 16);
+    setMask(0, 0, 19, 16);
   }
 
   public void tick() {
@@ -81,6 +81,7 @@ public class Player extends Entity {
     checkCollisionWithAmmo();
     checkCollisionWithPotion();
     checkCollisionWithWeapon();
+    checkCollisionWithArrowWall();
 
     if (isDamaged) {
       this.damageFrames++;
@@ -131,6 +132,18 @@ public class Player extends Entity {
     Camera.y = Camera.clamp(currentY, minY, maxY);
   }
 
+  public void checkCollisionWithArrowWall() {
+    for (int i = 0; i < World.arrows.size(); i++) {
+      Arrow arrow = World.arrows.get(i);
+
+      if (Entity.isColliding(this, arrow)) {
+        ammo += 1;
+        World.arrows.remove(arrow);
+        Sound.itemEffect.play();
+      }
+    }
+  }
+
   public void checkCollisionWithWeapon() {
     for (int i = 0; i < Game.entities.size(); i++) {
       Entity entity = Game.entities.get(i);
@@ -156,8 +169,6 @@ public class Player extends Entity {
         Game.entities.remove(entity);
         Sound.itemEffect.play();
       }
-
-      if (life > maxLife) life = maxLife;
     }
   }
 

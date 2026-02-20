@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
 
 public class World {
@@ -20,6 +21,7 @@ public class World {
   public static int PLAYER_COLOR = 0xFF8E00A3;
   public static int ENEMY_COLOR = 0xFFA30000;
   public static Tile[] tiles;
+  public static List<Arrow> arrows;
 
   public World(String path) {
     try {
@@ -28,6 +30,7 @@ public class World {
       HEIGHT = map.getHeight();
       int[] pixels = new int[map.getWidth() * map.getHeight()];
       tiles = new Tile[map.getWidth() * map.getHeight()];
+      arrows = new ArrayList<>();
       map.getRGB(0, 0, map.getWidth(), map.getHeight(), pixels, 0, map.getWidth());
       for (int xx = 0; xx < map.getWidth(); xx++) {
         for (int yy = 0; yy < map.getHeight(); yy++) {
@@ -107,6 +110,10 @@ public class World {
         Tile tile = tiles[xx + (yy * WIDTH)];
         tile.render(g);
       }
+    }
+
+    for (int i = 0; i < arrows.size(); i++) {
+      arrows.get(i).render(g);
     }
   }
 }

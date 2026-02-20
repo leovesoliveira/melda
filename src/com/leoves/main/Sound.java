@@ -11,6 +11,7 @@ public class Sound {
   public static final Sound backgroundMusic = new Sound("/music.wav");
   public static final Sound hurtEffect = new Sound("/hurt_effect.wav");
   public static final Sound arrowEffect = new Sound("/arrow_effect.wav");
+  public static final Sound arrowWallEffect = new Sound("/arrow_wall_effect.wav");
   public static final Sound itemEffect = new Sound("/item_effect.wav");
   public static final Sound damageEffect = new Sound("/damage_effect.wav");
   public static final Sound gameOver = new Sound("/game_over.wav");

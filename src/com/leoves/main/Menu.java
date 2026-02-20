@@ -1,18 +1,21 @@
 package com.leoves.main;
 
+import com.leoves.world.World;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.io.*;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 
 public class Menu {
 
+  public static boolean isPaused = false;
+  public static boolean saveExists = false;
+  public static boolean savingGame = false;
   public String[] options = {"NEW_GAME", "LOAD_GAME", "EXIT"};
   public int currentOption = 0;
   public int maxOption = options.length - 1;
   public boolean up, down, enter;
-  public boolean isPaused = false;
   private BufferedImage logo;
   private BufferedImage background;
   private BufferedImage buttonsSpritesheet;
@@ -49,7 +52,99 @@ public class Menu {
     continueButton[1] = buttonsSpritesheet.getSubimage(bw * 1, bh * 3, bw, bh);
   }
 
+  public static void applySave(String str) {
+    String[] spl = str.split("/");
+
+    for (int i = 0; i < spl.length; i++) {
+      String[] spl2 = spl[i].split(":");
+
+      switch (spl2[0]) {
+        case "level":
+          World.restartGame("level" + spl2[1] + ".png");
+          Game.state = "DEFAULT";
+          isPaused = false;
+          break;
+      }
+    }
+  }
+
+  public static String loadGame(int encode) {
+    String line = "";
+    File file = new File("save.txt");
+
+    if (file.exists()) {
+      try {
+        String singleLine = null;
+
+        BufferedReader reader = new BufferedReader(new FileReader("save.txt"));
+
+        try {
+          while ((singleLine = reader.readLine()) != null) {
+            String[] trans = singleLine.split(":");
+            char[] val = trans[1].toCharArray();
+            trans[1] = "";
+
+            for (int i = 0; i < val.length; i++) {
+              val[i] -= encode;
+              trans[1] += val[i];
+            }
+
+            line += trans[0];
+            line += ":";
+            line += trans[1];
+            line += "/";
+          }
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return line;
+  }
+
+  public static void saveGame(String[] val1, int[] val2, int encode) {
+    BufferedWriter write = null;
+
+    try {
+      write = new BufferedWriter(new FileWriter("save.txt"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    for (int i = 0; i < val1.length; i++) {
+      String current = val1[i];
+      current += ":";
+
+      char[] value = Integer.toString(val2[i]).toCharArray();
+
+      for (int n = 0; n < value.length; n++) {
+        value[n] += encode;
+        current += value[n];
+      }
+
+      try {
+        write.write(current);
+        if (i < val1.length - 1) write.newLine();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    try {
+      write.flush();
+      write.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public void tick() {
+    File file = new File("save.txt");
+    saveExists = file.exists();
+
     if (up) {
       up = false;
       currentOption--;
@@ -70,6 +165,15 @@ public class Menu {
 
       if (Objects.equals(options[currentOption], "NEW_GAME")) {
         Game.state = "DEFAULT";
+        file = new File("save.txt");
+        file.delete();
+      }
+      if (Objects.equals(options[currentOption], "LOAD_GAME")) {
+        file = new File("save.txt");
+        if (file.exists()) {
+          String saver = loadGame(10);
+          applySave(saver);
+        }
       }
       if (Objects.equals(options[currentOption], "EXIT")) {
         System.exit(1);
@@ -78,7 +182,6 @@ public class Menu {
   }
 
   public void render(Graphics g) {
-
     if (!isPaused) {
       g.setColor(Color.white);
       g.fillRect(0, 0, Game.WIDTH * Game.SCALE, Game.HEIGHT * Game.SCALE);
