@@ -190,7 +190,7 @@ public class Player extends Entity {
         Sound.itemEffect.play();
       }
 
-      if (life > 100) life = 100;
+      if (life > maxLife) life = maxLife;
     }
   }
 

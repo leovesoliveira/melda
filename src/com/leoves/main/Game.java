@@ -12,12 +12,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Game extends Canvas implements Runnable, KeyListener {
@@ -41,6 +43,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
   public boolean savingGame = false;
   public InputStream stream =
       ClassLoader.getSystemClassLoader().getResourceAsStream("Jersey10.ttf");
+  public int[] pixels;
+  public BufferedImage mapLight;
+  public int[] mapLightPixels;
   private boolean isRunning = true;
   private Thread thread;
   private BufferedImage image;
@@ -56,6 +61,19 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     ui = new UI();
     image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+
+    try {
+      mapLight = ImageIO.read(getClass().getResource("/map-light.png"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    mapLightPixels = new int[mapLight.getWidth() * mapLight.getHeight()];
+    mapLight.getRGB(
+        0, 0, mapLight.getWidth(), mapLight.getHeight(), mapLightPixels, 0, mapLight.getWidth());
+
+    pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+
     entities = new ArrayList<>();
     enemies = new ArrayList<>();
     arrows = new ArrayList<>();
@@ -146,6 +164,16 @@ public class Game extends Canvas implements Runnable, KeyListener {
     }
   }
 
+  public void applyLight() {
+    for (int xx = 0; xx < Game.WIDTH; xx++) {
+      for (int yy = 0; yy < Game.HEIGHT; yy++) {
+        if (mapLightPixels[xx + (yy * Game.WIDTH)] == 0xFFFFFFFF) {
+          pixels[xx + (yy * Game.WIDTH)] = 0xFF000000;
+        }
+      }
+    }
+  }
+
   public void render() {
     BufferStrategy bs = this.getBufferStrategy();
 
@@ -168,6 +196,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
     for (int i = 0; i < arrows.size(); i++) {
       arrows.get(i).render(g);
     }
+
+    applyLight();
 
     g.dispose();
     g = bs.getDrawGraphics();
