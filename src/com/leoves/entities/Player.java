@@ -24,6 +24,8 @@ public class Player extends Entity {
   private BufferedImage[] playerLeft;
   private BufferedImage[] playerDamaged;
   private int damageFrames = 0;
+  private int shootFrames = 0;
+  private int maxShootFrames = 30;
 
   public Player(int x, int y, int width, int height, BufferedImage sprite) {
     super(x, y, width, height, sprite);
@@ -48,6 +50,7 @@ public class Player extends Entity {
   public void tick() {
 
     moved = false;
+    shootFrames++;
 
     if (right && World.isFree((int) (x + speed), this.getY())) {
       moved = true;
@@ -91,7 +94,8 @@ public class Player extends Entity {
       }
     }
 
-    if (isShooting && hasWeapon && ammo > 0) {
+    if (isShooting && hasWeapon && ammo > 0 && shootFrames > maxShootFrames) {
+      shootFrames = 0;
       ammo--;
       isShooting = false;
       int dx = 0;
