@@ -148,6 +148,7 @@ public class Menu {
     if (up) {
       up = false;
       currentOption--;
+      Sound.arrowEffect.play();
       if (currentOption < 0) {
         currentOption = maxOption;
       }
@@ -155,15 +156,14 @@ public class Menu {
     if (down) {
       down = false;
       currentOption++;
+      Sound.arrowEffect.play();
       if (currentOption > maxOption) {
         currentOption = 0;
       }
     }
     if (enter) {
-      enter = false;
-      isPaused = false;
-
       if (Objects.equals(options[currentOption], "NEW_GAME")) {
+        if (!isPaused) Sound.backgroundMusic.loop();
         Game.state = "DEFAULT";
         file = new File("save.txt");
         file.delete();
@@ -178,6 +178,9 @@ public class Menu {
       if (Objects.equals(options[currentOption], "EXIT")) {
         System.exit(1);
       }
+
+      enter = false;
+      isPaused = false;
     }
   }
 

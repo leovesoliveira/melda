@@ -11,15 +11,15 @@ public class Player extends Entity {
 
   public double life = 50, maxLife = 50;
   public boolean right, up, left, down;
-  public double speed = 1.2;
+  public double speed = 0.7;
   public int rightDir = 0, leftDir = 1;
   public int dir = rightDir;
   public int ammo = 0;
   public boolean isDamaged = false;
   public boolean hasWeapon = false;
   public boolean isShooting = false;
+  public boolean moved = false;
   private int frames = 0, maxFrames = 5, index = 0, maxIndex = 3;
-  private boolean moved = false;
   private BufferedImage[] playerRight;
   private BufferedImage[] playerLeft;
   private BufferedImage[] playerDamaged;
@@ -44,7 +44,7 @@ public class Player extends Entity {
     playerDamaged[0] = Game.spritesheet.getSprite(0, 16, 16, 16);
     playerDamaged[1] = Game.spritesheet.getSprite(16, 16, 16, 16);
 
-    setMask(0, 0, 19, 16);
+    setMask(0, 0, 16, 16);
   }
 
   public void tick() {
@@ -118,6 +118,7 @@ public class Player extends Entity {
 
     if (life <= 0) {
       Game.state = "GAME_OVER";
+      Sound.backgroundMusic.stop();
       Sound.gameOver.loop();
     }
 

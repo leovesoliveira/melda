@@ -15,10 +15,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.Timer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -149,6 +148,18 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
 
         Sound.levelEffect.play();
+        Sound.backgroundMusic.stop();
+
+        new Timer()
+            .schedule(
+                new TimerTask() {
+                  @Override
+                  public void run() {
+                    Sound.backgroundMusic.loop();
+                  }
+                },
+                3500);
+
         String newWorld = "level" + currentLevel + ".png";
         World.restartGame(newWorld);
       }
@@ -157,6 +168,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         state = "DEFAULT";
         currentLevel = 1;
         restartOnEnter = false;
+        Sound.backgroundMusic.loop();
         World.restartGame("level" + currentLevel + ".png");
       }
     } else if (Objects.equals(state, "MENU")) {
@@ -197,7 +209,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
       arrows.get(i).render(g);
     }
 
-    applyLight();
+    //    applyLight();
 
     g.dispose();
     g = bs.getDrawGraphics();
