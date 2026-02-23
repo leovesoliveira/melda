@@ -48,7 +48,7 @@ public class Player extends Entity {
   }
 
   public void tick() {
-    depth = 1;
+    depth = 3;
 
     moved = false;
     shootFrames++;
