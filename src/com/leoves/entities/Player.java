@@ -11,19 +11,21 @@ public class Player extends Entity {
 
   public double life = 50, maxLife = 50;
   public boolean right, up, left, down;
-  public double speed = 1.2;
+  public double speed = 0.7;
   public int rightDir = 0, leftDir = 1;
   public int dir = rightDir;
   public int ammo = 0;
   public boolean isDamaged = false;
   public boolean hasWeapon = false;
   public boolean isShooting = false;
+  public boolean moved = false;
   private int frames = 0, maxFrames = 5, index = 0, maxIndex = 3;
-  private boolean moved = false;
   private BufferedImage[] playerRight;
   private BufferedImage[] playerLeft;
   private BufferedImage[] playerDamaged;
   private int damageFrames = 0;
+  private int shootFrames = 0;
+  private int maxShootFrames = 30;
 
   public Player(int x, int y, int width, int height, BufferedImage sprite) {
     super(x, y, width, height, sprite);
@@ -42,12 +44,13 @@ public class Player extends Entity {
     playerDamaged[0] = Game.spritesheet.getSprite(0, 16, 16, 16);
     playerDamaged[1] = Game.spritesheet.getSprite(16, 16, 16, 16);
 
-    setMask(4, 0, 9, 16);
+    setMask(0, 0, 16, 16);
   }
 
   public void tick() {
 
     moved = false;
+    shootFrames++;
 
     if (right && World.isFree((int) (x + speed), this.getY())) {
       moved = true;
@@ -81,6 +84,7 @@ public class Player extends Entity {
     checkCollisionWithAmmo();
     checkCollisionWithPotion();
     checkCollisionWithWeapon();
+    checkCollisionWithArrowWall();
 
     if (isDamaged) {
       this.damageFrames++;
@@ -90,7 +94,8 @@ public class Player extends Entity {
       }
     }
 
-    if (isShooting && hasWeapon && ammo > 0) {
+    if (isShooting && hasWeapon && ammo > 0 && shootFrames > maxShootFrames) {
+      shootFrames = 0;
       ammo--;
       isShooting = false;
       int dx = 0;
@@ -113,6 +118,7 @@ public class Player extends Entity {
 
     if (life <= 0) {
       Game.state = "GAME_OVER";
+      Sound.backgroundMusic.stop();
       Sound.gameOver.loop();
     }
 
@@ -129,6 +135,18 @@ public class Player extends Entity {
     int minY = 0;
     int maxY = World.HEIGHT * 16 - Game.HEIGHT;
     Camera.y = Camera.clamp(currentY, minY, maxY);
+  }
+
+  public void checkCollisionWithArrowWall() {
+    for (int i = 0; i < World.arrows.size(); i++) {
+      Arrow arrow = World.arrows.get(i);
+
+      if (Entity.isColliding(this, arrow)) {
+        ammo += 1;
+        World.arrows.remove(arrow);
+        Sound.itemEffect.play();
+      }
+    }
   }
 
   public void checkCollisionWithWeapon() {
@@ -156,8 +174,6 @@ public class Player extends Entity {
         Game.entities.remove(entity);
         Sound.itemEffect.play();
       }
-
-      if (life > maxLife) life = maxLife;
     }
   }
 
@@ -175,7 +191,7 @@ public class Player extends Entity {
         Sound.itemEffect.play();
       }
 
-      if (life > 100) life = 100;
+      if (life > maxLife) life = maxLife;
     }
   }
 

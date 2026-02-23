@@ -12,10 +12,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.awt.image.DataBufferInt;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.Timer;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Game extends Canvas implements Runnable, KeyListener {
@@ -32,8 +35,16 @@ public class Game extends Canvas implements Runnable, KeyListener {
   public static List<Arrow> arrows;
   public static Random rand;
   public static String state = "MENU";
+  public static Font fontMd;
+  public static Font fontSm;
   public UI ui;
   public Menu menu;
+  public boolean savingGame = false;
+  public InputStream stream =
+      ClassLoader.getSystemClassLoader().getResourceAsStream("Jersey10.ttf");
+  public int[] pixels;
+  public BufferedImage mapLight;
+  public int[] mapLightPixels;
   private boolean isRunning = true;
   private Thread thread;
   private BufferedImage image;
@@ -49,6 +60,19 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     ui = new UI();
     image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+
+    try {
+      mapLight = ImageIO.read(getClass().getResource("/map-light.png"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    mapLightPixels = new int[mapLight.getWidth() * mapLight.getHeight()];
+    mapLight.getRGB(
+        0, 0, mapLight.getWidth(), mapLight.getHeight(), mapLightPixels, 0, mapLight.getWidth());
+
+    pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+
     entities = new ArrayList<>();
     enemies = new ArrayList<>();
     arrows = new ArrayList<>();
@@ -59,6 +83,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
     entities.add(player);
 
     world = new World("/level1.png");
+
+    try {
+      fontMd = Font.createFont(Font.TRUETYPE_FONT, stream);
+    } catch (FontFormatException | IOException e) {
+      throw new RuntimeException(e);
+    }
+
     menu = new Menu();
   }
 
@@ -90,6 +121,14 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
   public void tick() {
     if (Objects.equals(state, "DEFAULT")) {
+      if (this.savingGame) {
+        this.savingGame = false;
+        String[] opt1 = {"level"};
+        int[] opt2 = {this.currentLevel};
+        Menu.saveGame(opt1, opt2, 10);
+        System.out.println("Jogo salvo!");
+      }
+
       restartOnEnter = false;
       for (int i = 0; i < entities.size(); i++) {
         Entity e = entities.get(i);
@@ -109,6 +148,18 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
 
         Sound.levelEffect.play();
+        Sound.backgroundMusic.stop();
+
+        new Timer()
+            .schedule(
+                new TimerTask() {
+                  @Override
+                  public void run() {
+                    Sound.backgroundMusic.loop();
+                  }
+                },
+                3500);
+
         String newWorld = "level" + currentLevel + ".png";
         World.restartGame(newWorld);
       }
@@ -117,10 +168,21 @@ public class Game extends Canvas implements Runnable, KeyListener {
         state = "DEFAULT";
         currentLevel = 1;
         restartOnEnter = false;
+        Sound.backgroundMusic.loop();
         World.restartGame("level" + currentLevel + ".png");
       }
     } else if (Objects.equals(state, "MENU")) {
       menu.tick();
+    }
+  }
+
+  public void applyLight() {
+    for (int xx = 0; xx < Game.WIDTH; xx++) {
+      for (int yy = 0; yy < Game.HEIGHT; yy++) {
+        if (mapLightPixels[xx + (yy * Game.WIDTH)] == 0xFFFFFFFF) {
+          pixels[xx + (yy * Game.WIDTH)] = 0xFF000000;
+        }
+      }
     }
   }
 
@@ -146,6 +208,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
     for (int i = 0; i < arrows.size(); i++) {
       arrows.get(i).render(g);
     }
+
+    //    applyLight();
 
     g.dispose();
     g = bs.getDrawGraphics();
@@ -267,6 +331,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
       if (Objects.equals(state, "DEFAULT")) {
         state = "MENU";
         menu.isPaused = true;
+      }
+    }
+
+    if (e.getKeyCode() == KeyEvent.VK_F1) {
+      if (Objects.equals(state, "DEFAULT")) {
+        this.savingGame = true;
       }
     }
   }

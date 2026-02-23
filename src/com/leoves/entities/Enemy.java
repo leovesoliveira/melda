@@ -2,7 +2,9 @@ package com.leoves.entities;
 
 import com.leoves.main.Game;
 import com.leoves.main.Sound;
+import com.leoves.world.AStar;
 import com.leoves.world.Camera;
+import com.leoves.world.Vector2i;
 import com.leoves.world.World;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -15,43 +17,58 @@ public class Enemy extends Entity {
   private int life = 3;
   private boolean isDamaged = false;
   private int damageFrames = 0;
+  private int randomDir = Game.rand.nextInt(5);
+  private int framesRandomDir = 0;
 
   public Enemy(int x, int y, int width, int height, BufferedImage sprite) {
     super(x, y, width, height, null);
     sprites = new BufferedImage[2];
     sprites[0] = Game.spritesheet.getSprite(7 * 16, 16, 16, 16);
     sprites[1] = Game.spritesheet.getSprite(8 * 16, 16, 16, 16);
-    setMask(3, 5, 10, 9);
+    setMask(0, 0, 16, 16);
   }
 
   public void tick() {
-    if (isCollidingWithPlayer() == false) {
-      if ((int) x < Game.player.getX()
-          && World.isFree((int) (x + speed), this.getY())
-          && !isColliding((int) (x + speed), this.getY())) {
-        x += speed;
-      } else if ((int) x > Game.player.getX()
-          && World.isFree((int) (x - speed), this.getY())
-          && !isColliding((int) (x - speed), this.getY())) {
-        x -= speed;
+    double distanceFromPlayer =
+        this.calculateDistance(this.getX(), this.getY(), Game.player.getX(), Game.player.getY());
+
+    if (distanceFromPlayer < 70) {
+      if (!isCollidingWithPlayer()) {
+        if (path == null || path.isEmpty() || Game.player.moved) {
+          Vector2i start = new Vector2i((int) (x + 8) / 16, (int) (y + 8) / 16);
+          Vector2i end =
+              new Vector2i((int) (Game.player.x + 8) / 16, (int) (Game.player.y + 8) / 16);
+          path = AStar.findPath(Game.world, start, end);
+        }
+      } else {
+        if (Game.rand.nextInt(100) < 5) {
+          Game.player.life -= Game.rand.nextInt(4) + 1;
+          Game.player.isDamaged = true;
+          Sound.hurtEffect.play();
+        }
       }
 
-      if ((int) y < Game.player.getY()
-          && World.isFree(this.getX(), (int) (y + speed))
-          && !isColliding(this.getX(), (int) (y + speed))) {
-        y += speed;
-      } else if ((int) y > Game.player.getY()
-          && World.isFree(this.getX(), (int) (y - speed))
-          && !isColliding(this.getX(), (int) (y - speed))) {
-        y -= speed;
-      }
     } else {
-      if (Game.rand.nextInt(100) < 10) {
-        Game.player.life -= Game.rand.nextInt(4) + 1;
-        Game.player.isDamaged = true;
-        Sound.hurtEffect.play();
+      framesRandomDir++;
+      if (framesRandomDir == 40) {
+        framesRandomDir = 0;
+        randomDir = Game.rand.nextInt(5);
       }
+
+      if (randomDir == 1 && World.isFree((int) (x + 1), this.getY())) {
+        if (Game.rand.nextInt(100) < (speed * 100 / 2)) x++;
+      } else if (randomDir == 2 && World.isFree((int) (x - 1), this.getY())) {
+        if (Game.rand.nextInt(100) < (speed * 100 / 2)) x--;
+      } else if (randomDir == 3 && World.isFree(this.getX(), (int) (y + 1))) {
+        if (Game.rand.nextInt(100) < ((speed * 100) / 2)) y++;
+      } else if (randomDir == 4 && World.isFree(this.getX(), (int) (y - 1))) {
+        if (Game.rand.nextInt(100) < (speed * 100 / 2)) y--;
+      }
+
+      path = null;
     }
+
+    if (Game.rand.nextInt(100) < (speed * 100)) followPath(path);
 
     frames++;
     if (frames == maxFrames) {
@@ -109,25 +126,6 @@ public class Enemy extends Entity {
             Game.player.maskHeight);
 
     return currentEnemy.intersects(player);
-  }
-
-  public boolean isColliding(int nextX, int nextY) {
-    Rectangle currentEnemy = new Rectangle(nextX + maskX, nextY + maskY, maskWidth, maskHeight);
-
-    for (int i = 0; i < Game.enemies.size(); i++) {
-      Enemy enemy = Game.enemies.get(i);
-
-      if (enemy == this) continue;
-
-      Rectangle targetEnemy =
-          new Rectangle(enemy.getX() + maskX, enemy.getY() + maskY, maskWidth, maskHeight);
-
-      if (currentEnemy.intersects(targetEnemy)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   public void render(Graphics g) {
