@@ -171,6 +171,7 @@ public class Menu {
       if (Objects.equals(options[currentOption], "LOAD_GAME")) {
         file = new File("save.txt");
         if (file.exists()) {
+          Sound.backgroundMusic.loop();
           String saver = loadGame(10);
           applySave(saver);
         }
