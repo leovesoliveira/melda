@@ -200,6 +200,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     world.render(g);
 
+    Collections.sort(entities, Entity.depthSorter);
+
     for (int i = 0; i < entities.size(); i++) {
       Entity e = entities.get(i);
       e.render(g);

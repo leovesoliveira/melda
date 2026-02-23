@@ -7,6 +7,7 @@ import com.leoves.world.Vector2i;
 import com.leoves.world.World;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Comparator;
 import java.util.List;
 
 public class Entity {
@@ -18,6 +19,16 @@ public class Entity {
   public static BufferedImage AMMO_EN = Game.spritesheet.getSprite(6 * 16, 16, 16, 16);
   public static BufferedImage ENEMY_EN = Game.spritesheet.getSprite(7 * 16, 16, 16, 16);
   public static BufferedImage ENEMY_DAMAGED_EN = Game.spritesheet.getSprite(9 * 16, 16, 16, 16);
+  public static Comparator<Entity> depthSorter =
+      new Comparator<Entity>() {
+        @Override
+        public int compare(Entity n0, Entity n1) {
+          if (n1.depth < n0.depth) return +1;
+          if (n1.depth > n0.depth) return -1;
+          return 0;
+        }
+      };
+  public int depth;
   protected double x;
   protected double y;
   protected int width;
