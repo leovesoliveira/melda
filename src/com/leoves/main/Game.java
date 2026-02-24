@@ -37,6 +37,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
   public static String state = "MENU";
   public static Font fontMd;
   public static Font fontSm;
+  public static BufferedImage miniMap;
+  public static int[] miniMapPixels;
   public UI ui;
   public Menu menu;
   public boolean savingGame = false;
@@ -83,6 +85,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
     entities.add(player);
 
     world = new World("/level1.png");
+
+    miniMap = new BufferedImage(World.WIDTH, World.HEIGHT, BufferedImage.TYPE_INT_RGB);
+    miniMapPixels = ((DataBufferInt) miniMap.getRaster().getDataBuffer()).getData();
 
     try {
       fontMd = Font.createFont(Font.TRUETYPE_FONT, stream);
@@ -200,6 +205,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     world.render(g);
 
+    Collections.sort(entities, Entity.depthSorter);
+
     for (int i = 0; i < entities.size(); i++) {
       Entity e = entities.get(i);
       e.render(g);
@@ -218,6 +225,14 @@ public class Game extends Canvas implements Runnable, KeyListener {
     ui.render(g);
 
     player.updateCamera();
+
+    World.renderMiniMap();
+    int miniMapWidth = World.WIDTH * 6;
+    int miniMapHeight = World.HEIGHT * 6;
+    int miniMapMargin = 16;
+    int miniMapX = (WIDTH * SCALE) - miniMapWidth - miniMapMargin;
+    int miniMapY = (HEIGHT * SCALE) - miniMapHeight - miniMapMargin;
+    g.drawImage(miniMap, miniMapX, miniMapY, miniMapWidth, miniMapHeight, null);
 
     if (Objects.equals(state, "GAME_OVER")) {
       Graphics2D g2 = (Graphics2D) g;

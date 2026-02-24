@@ -29,6 +29,8 @@ public class Enemy extends Entity {
   }
 
   public void tick() {
+    depth = 2;
+
     double distanceFromPlayer =
         this.calculateDistance(this.getX(), this.getY(), Game.player.getX(), Game.player.getY());
 

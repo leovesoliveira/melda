@@ -5,6 +5,7 @@ import com.leoves.graphics.Spritesheet;
 import com.leoves.main.Game;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,6 +97,35 @@ public class World {
     Game.entities.add(Game.player);
 
     Game.world = new World("/" + level);
+
+    Game.miniMap =
+        new BufferedImage(Game.world.WIDTH, Game.world.HEIGHT, BufferedImage.TYPE_INT_RGB);
+    Game.miniMapPixels = ((DataBufferInt) Game.miniMap.getRaster().getDataBuffer()).getData();
+  }
+
+  public static void renderMiniMap() {
+    for (int i = 0; i < Game.miniMapPixels.length; i++) {
+      Game.miniMapPixels[i] = 0xFF028021;
+    }
+
+    for (int xx = 0; xx < WIDTH; xx++) {
+      for (int yy = 0; yy < HEIGHT; yy++) {
+        if (tiles[xx + (yy * WIDTH)] instanceof WallTile) {
+          Game.miniMapPixels[xx + (yy * WIDTH)] = 0xFF424038;
+        }
+      }
+    }
+
+    int xPlayer = Game.player.getX() / 16;
+    int yPlayer = Game.player.getY() / 16;
+    Game.miniMapPixels[xPlayer + (yPlayer * WIDTH)] = 0xFF8C1795;
+
+    for (int i = 0; i < Game.enemies.size(); i++) {
+      Enemy enemy = Game.enemies.get(i);
+      int xEnemy = enemy.getX() / 16;
+      int yEnemy = enemy.getY() / 16;
+      Game.miniMapPixels[xEnemy + (yEnemy * WIDTH)] = 0xFFAC0B0B;
+    }
   }
 
   public void render(Graphics g) {
